@@ -8,6 +8,7 @@ struct CellS {
   int y;
   int z;
   char character;
+  int light_level;
   int foreground;
   int background;
 };

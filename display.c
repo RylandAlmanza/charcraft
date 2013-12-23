@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <ncurses.h>
 #include "display.h"
 #include "colorutils.h"

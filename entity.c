@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdlib.h>
 #include "entity.h"
 
 // Load an entity from a file
@@ -49,6 +49,7 @@ Entity create_Tree(int x, int y) {
                   .y = 0,
                   .z = 1,
                   .character = 'T',
+                  .light_level = 0,
                   .foreground = COLOR_WHITE,
                   .background = -1};
     tree.cells[0] = cell0;
@@ -64,6 +65,7 @@ Entity create_Guy(int x, int y) {
                   .y = 0,
                   .z = 1,
                   .character = '@',
+                  .light_level = 2,
                   .foreground = COLOR_WHITE,
                   .background = -1};
     guy.cells[0] = cell0;
