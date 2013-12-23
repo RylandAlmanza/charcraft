@@ -2,14 +2,13 @@
 #define DISPLAY_H_
 
 #include "entity.h"
-#include "cell.h"
 
 typedef struct LayerQueueS LayerQueue;
 
 struct LayerQueueS {
-    Cell *cells;
+    Entity *entities;
     int length;
-    void (*add_cell)(LayerQueue *self, Cell cell);
+    void (*add_entity)(LayerQueue *self, Entity entity);
     void (*reset)(LayerQueue *self);
 };
 

@@ -3,4 +3,4 @@ LIBS=-lncurses
 DEPS=*.h
 
 main: $(DEPS) *.c
-	$(CC) *.c -o main $(LIBS)
+	$(CC) *.c -o main $(LIBS) -g

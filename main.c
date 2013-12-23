@@ -4,52 +4,32 @@
 #include "world.h"
 #include "entity.h"
 
-/*Entity construct_clear_entity(int x, int y, int width, int height) {
-    Entity clear_entity = {.x = x, .y = y, .width = width, .height = height};
-    clear_entity.cells = malloc(sizeof(Cell) * (width * height));
-    int i;
-    int j;
-    for (j = 0; j < height; j++) {
-        for (i = 0; i < width; i++) {
-            Cell cell = {.x = i,
-                         .y = j,
-                         .z = 0,
-                         .character = ' ',
-                         .foreground = COLOR_BLACK,
-                         .background = COLOR_BLACK
-                        };
-            clear_entity.cells[(j * width) + i] = cell;
-        }
+void sync_background(Entity *entity, World world) {
+    if (!world.light_map[entity->y][entity->x]) {
+        entity->background = COLOR_BLACK;
+    } else {
+        entity->background = world.map[entity->y][entity->x].original_background;
+        //entity->background = COLOR_GREEN;
     }
-    clear_entity.number_of_cells = width * height;
-    return clear_entity;
-}*/
+}
 
 void draw(Display *display, World world) {
     int i;
     for (i = 0; i < world.number_of_entities; i++) {
+        sync_background(&world.entities[i], world);
         display->add_entity_to_queue(display, world.entities[i]);
     }
 
-    /*int y;
+    int y;
     for (y = 0; y < world.height; y++) {
         int x;
         for (x = 0; x < world.width; x++) {
+            sync_background(&world.map[y][x], world);
             display->add_entity_to_queue(display, world.map[y][x]);
         }
-    }*/
+    }
     display->draw(display);
     display->reset_queue(display);
-}
-
-void sync_background(Entity *entity, World world) {
-    int i;
-    for (i = 0; i < entity->number_of_cells; i++) {
-        int world_x = entity->x + entity->cells[i].x;
-        int world_y = entity->y + entity->cells[i].y;
-        Cell tile_cell = world.map[world_y][world_x].cells[0];
-        entity->cells[i].background = tile_cell.background;
-    }
 }
 
 int main() {
@@ -60,30 +40,33 @@ int main() {
     int player_id = 0;
     Entity guy = create_Guy(5, 5);
     world.add_entity(&world, guy);
-    sync_background(&guy, world);
-    display.add_entity_to_queue(&display, guy);
+    //sync_background(&guy, world);
+    //display.add_entity_to_queue(&display, guy);
 
-    int y;
+    /*int y;
     for (y = 0; y < world.height; y++) {
         int x;
         for (x = 0; x < world.width; x++) {
+            sync_background(&world.map[y][x], world);
             display.add_entity_to_queue(&display, world.map[y][x]);
         }
-    }
+    }*/
     
-    Entity tree = create_Tree(2, 2);
+    Entity tree = create_Tree(4, 4);
     world.add_entity(&world, tree);
-    sync_background(&tree, world);
-    display.add_entity_to_queue(&display, tree);
+    //sync_background(&tree, world);
+    //display.add_entity_to_queue(&display, tree);
 
-    display.draw(&display);
+    //display.draw(&display);
+
+    draw(&display, world);
 
     int ch;
     while (ch != 'q') {
         display.reset_queue(&display);
         Entity *player = world.get_entity(&world, player_id);
 
-        display.add_entity_to_queue(&display, world.map[player->y][player->x]);
+        //display.add_entity_to_queue(&display, world.map[player->y][player->x]);
         ch = getch();
         int x_delta = 0;
         int y_delta = 0;
@@ -99,12 +82,17 @@ int main() {
         if (ch == KEY_LEFT) {
             x_delta = -1;
         }
-        world.move_entity(&world, player_id, x_delta, y_delta);
-        sync_background(player, world);
-        display.add_entity_to_queue(&display, *player);
-        display.draw(&display);
+        if (ch == 't') {
+            world.add_entity(&world, create_Torch(player->x, player->y));
+        }
+        if (x_delta != 0 || y_delta != 0) {
+            world.move_entity(&world, player_id, x_delta, y_delta);
+        }
+        //sync_background(player, world);
+        //display.add_entity_to_queue(&display, *player);
+        //display.draw(&display);
         //destroy_Entity(&clear_guy);
-        //draw(&display, world);
+        draw(&display, world);
     }
 
     destroy_Display(&display);
