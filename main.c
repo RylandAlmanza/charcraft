@@ -5,7 +5,7 @@
 #include "blocks.h"
 #include "entity.h"
 
-void draw(Display *display, World *world) {
+void draw(Display *display, World *world, bool is_day) {
     int x;
     int y;
     int z;
@@ -18,7 +18,7 @@ void draw(Display *display, World *world) {
                 cell.y = y;
                 cell.z = z;
                 cell.character = world->map[z][y][x].character;
-                if (world->light_map[y][x]) {
+                if (is_day || world->light_map[y][x]) {
                     cell.foreground = world->map[z][y][x].foreground;
                     cell.background = world->map[z][y][x].background;
                 } else {
@@ -77,6 +77,9 @@ Point get_delta_from_key(int key) {
 int main() {
     Display display = construct_Display();
     World world = construct_World(80, 24);
+
+    bool is_day = true;
+    int time = 0;
     
     // The player's is the first entity to be added, so it's id is 0
     int player_id = 0;
@@ -103,7 +106,7 @@ int main() {
 
     //display.draw(&display);
 
-    draw(&display, &world);
+    draw(&display, &world, is_day);
 
     int ch;
     while (ch != 'q') {
@@ -138,7 +141,19 @@ int main() {
                                                  player->z));
             }
         }
-        draw(&display, &world);
+        draw(&display, &world, is_day);
+        time++;
+        if (time == 1000) {
+            time = 0;
+            switch (is_day) {
+                case true:
+                    is_day = false;
+                    break;
+                case false:
+                    is_day = true;
+                    break;
+            }
+        }
     }
 
     destroy_Display(&display);
