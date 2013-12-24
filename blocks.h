@@ -3,7 +3,9 @@
 
 #include "entity.h"
 
-Entity create_GrassBlock(int x, int y);
-Entity create_WaterBlock(int x, int y);
+Entity create_AirBlock(int x, int y, int z);
+Entity create_GrassBlock(int x, int y, int z);
+Entity create_WaterBlock(int x, int y, int z);
+Entity create_WoodBlock(int x, int y, int z);
 
 #endif

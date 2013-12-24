@@ -32,6 +32,16 @@ void World_add_entity(World *self, Entity entity) {
     }
 }
 
+void World_add_block(World *self, Entity block) {
+    if (self->map[block.z][block.y][block.x].character == ' ') {
+        self->map[block.z][block.y][block.x] = block;
+    }
+}
+
+void World_remove_block(World *self, int x, int y, int z) {
+    self->map[z][y][x] = create_AirBlock(x, y, z);
+}
+
 void World_reset_light_map(World *self) {
     int y;
     for (y = 0; y < self->height; y++) {
@@ -98,6 +108,7 @@ bool World_move_entity(World *self, int id, int x_delta, int y_delta) {
         if (i == id) continue;
         // Get a reference to the entity we're checking collision with
         Entity *entity_b = &self->entities[i];
+        if (!entity_b->is_solid) continue;
         if (proposed_x == entity_b->x &&
             proposed_y == entity_b->y &&
             entity->z == entity_b->z) {
@@ -106,6 +117,12 @@ bool World_move_entity(World *self, int id, int x_delta, int y_delta) {
             return false;
         }
     }
+
+    Entity *block = &self->map[entity->z][proposed_y][proposed_x];
+    if (block->is_solid) {
+        return false;
+    }
+
     // If we got this far, there will be no collisions, so let's go ahead and
     // move the entity!
     entity->x = proposed_x;
@@ -126,23 +143,33 @@ World construct_World(int width, int height) {
     world.entities = malloc(sizeof(Entity));
     world.number_of_lights = 0;
     world.light_ids = malloc(sizeof(int));
-    world.map = malloc(sizeof(Entity) * (world.width * world.height));
+    world.map = malloc(sizeof(Entity) * ((world.width * world.height) * 5));
     world.light_map = malloc(sizeof(bool) * (world.width * world.height));
-    int y;
     int x;
-    for (y = 0; y < world.height; y++) {
-        world.map[y] = malloc(sizeof(Entity) * world.width);
-        world.light_map[y] = malloc(sizeof(bool) * world.width);
-        for (x = 0; x < world.width; x++) {
-            if (x >= 35 && x <= 45 && y >= 7 && y <= 17) {
-                world.map[y][x] = create_WaterBlock(x, y);
-            } else {
-                world.map[y][x] = create_GrassBlock(x, y);
+    int y;
+    int z;
+    for (z = 0; z < 5; z++) {
+        world.map[z] = malloc(sizeof(Entity) * (world.width * world.height));
+        for (y = 0; y < world.height; y++) {
+            world.map[z][y] = malloc(sizeof(Entity) * world.width);
+            world.light_map[y] = malloc(sizeof(bool) * world.width);
+            for (x = 0; x < world.width; x++) {
+                if (z > 0) {
+                    world.map[z][y][x] = create_AirBlock(x, y, z);
+                    continue;
+                }
+                if (x >= 35 && x <= 45 && y >= 7 && y <= 17) {
+                    world.map[z][y][x] = create_WaterBlock(x, y, z);
+                } else {
+                    world.map[z][y][x] = create_GrassBlock(x, y, z);
+                }
+                world.light_map[y][x] = false;
             }
-            world.light_map[y][x] = false;
         }
     }
     world.add_entity = &World_add_entity;
+    world.add_block = &World_add_block;
+    world.remove_block = &World_remove_block;
     world.get_entity = &World_get_entity;
     world.move_entity = &World_move_entity;
     world.reset_light_map = &World_reset_light_map;

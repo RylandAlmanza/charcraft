@@ -11,11 +11,13 @@ struct WorldS {
     int height;
     int number_of_entities;
     Entity *entities;
-    Entity **map;
+    Entity ***map;
     int number_of_lights;
     int *light_ids;
     bool **light_map;
     void (*add_entity)(World *self, Entity entity);
+    void (*add_block)(World *self, Entity block);
+    void (*remove_block)(World *self, int x, int y, int z);
     Entity *(*get_entity)(World *self, int id);
     bool (*move_entity)(World *self, int id, int x_delta, int y_delta);
     void (*reset_light_map)(World *self);

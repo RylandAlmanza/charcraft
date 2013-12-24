@@ -1,30 +1,32 @@
 #include "colorutils.h"
+#include "directions.h"
 #include "display.h"
 #include "world.h"
+#include "blocks.h"
 #include "entity.h"
-
-int gdbi;
-int gdbx;
-int gdby;
 
 void draw(Display *display, World *world) {
     int x;
     int y;
-    for (y = 0; y < world->height; y++) {
-        for (x = 0; x < world->width; x++) {
-            Cell cell;
-            cell.x = x;
-            cell.y = y;
-            cell.z = world->map[y][x].z;
-            cell.character = world->map[y][x].character;
-            if (world->light_map[y][x]) {
-                cell.foreground = world->map[y][x].foreground;
-                cell.background = world->map[y][x].background;
-            } else {
-                cell.foreground = world->map[y][x].background;
-                cell.background = BLACK;
+    int z;
+    for (z = 0; z < 5; z++) {
+        for (y = 0; y < world->height; y++) {
+            for (x = 0; x < world->width; x++) {
+                if (world->map[z][y][x].character == ' ') continue;
+                Cell cell;
+                cell.x = x;
+                cell.y = y;
+                cell.z = z;
+                cell.character = world->map[z][y][x].character;
+                if (world->light_map[y][x]) {
+                    cell.foreground = world->map[z][y][x].foreground;
+                    cell.background = world->map[z][y][x].background;
+                } else {
+                    cell.foreground = world->map[z][y][x].background;
+                    cell.background = BLACK;
+                }
+                display->add_cell_to_queue(display, cell);
             }
-            display->add_cell_to_queue(display, cell);
         }
     }
 
@@ -39,7 +41,7 @@ void draw(Display *display, World *world) {
             cell.character = entity->character;
             cell.foreground = entity->foreground;
             if (entity->background == TRANSPARENT) {
-                cell.background = world->map[entity->y][entity->x].background;
+                cell.background = world->map[entity->z - 1][entity->y][entity->x].background;
             } else {
                 cell.background = entity->background;
             }
@@ -55,13 +57,30 @@ void draw(Display *display, World *world) {
     display->reset_queue(display);
 }
 
+Point get_delta_from_key(int key) {
+    Point delta = {.x = 0, .y = 0};
+    if (key == KEY_UP) {
+        delta = NORTH_DELTA;
+    }
+    if (key == KEY_RIGHT) {
+        delta = EAST_DELTA;
+    }
+    if (key == KEY_DOWN) {
+        delta = SOUTH_DELTA;
+    }
+    if (key == KEY_LEFT) {
+        delta = WEST_DELTA;
+    }
+    return delta;
+}
+
 int main() {
     Display display = construct_Display();
     World world = construct_World(80, 24);
     
     // The player's is the first entity to be added, so it's id is 0
     int player_id = 0;
-    Entity guy = create_Guy(5, 5);
+    Entity guy = create_Guy(5, 5, 1);
     world.add_entity(&world, guy);
     //sync_background(&guy, world);
     //display.add_entity_to_queue(&display, guy);
@@ -75,8 +94,8 @@ int main() {
         }
     }*/
     
-    Entity tree = create_Tree(4, 4);
-    Entity tree2 = create_Tree(15, 4);
+    Entity tree = create_Tree(4, 4, 1);
+    Entity tree2 = create_Tree(15, 4, 1);
     world.add_entity(&world, tree);
     world.add_entity(&world, tree2);
     //sync_background(&tree, world);
@@ -90,27 +109,34 @@ int main() {
     while (ch != 'q') {
         display.reset_queue(&display);
         Entity *player = world.get_entity(&world, player_id);
-
         ch = getch();
-        int x_delta = 0;
-        int y_delta = 0;
-        if (ch == KEY_UP) {
-            y_delta = -1;
-        }
-        if (ch == KEY_RIGHT) {
-            x_delta = 1;
-        }
-        if (ch == KEY_DOWN) {
-            y_delta = 1;
-        }
-        if (ch == KEY_LEFT) {
-            x_delta = -1;
+        Point delta = get_delta_from_key(ch);
+        if (delta.x != 0 || delta.y != 0) {
+            world.move_entity(&world, player_id, delta.x, delta.y);
         }
         if (ch == 't') {
-            world.add_entity(&world, create_Torch(player->x, player->y));
+            world.add_entity(&world,
+                             create_Torch(player->x, player->y, player->z));
         }
-        if (x_delta != 0 || y_delta != 0) {
-            world.move_entity(&world, player_id, x_delta, y_delta);
+        if (ch == 'x') {
+            ch = getch();
+            delta = get_delta_from_key(ch);
+            if (delta.x != 0 || delta.y != 0) {
+                world.remove_block(&world,
+                                   player->x + delta.x,
+                                   player->y + delta.y,
+                                   player->z);
+            }
+        }
+        if (ch == 'z') {
+            ch = getch();
+            delta = get_delta_from_key(ch);
+            if (delta.x != 0 || delta.y != 0) {
+                world.add_block(&world,
+                                create_WoodBlock(player->x + delta.x,
+                                                 player->y + delta.y,
+                                                 player->z));
+            }
         }
         draw(&display, &world);
     }

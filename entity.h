@@ -8,6 +8,7 @@ struct EntityS {
   int y;
   int z;
   char character;
+  bool is_solid;
   int brightness;
   int original_foreground;
   int original_background;
@@ -15,7 +16,7 @@ struct EntityS {
   int background;
 };
 
-Entity create_Tree(int x, int y);
-Entity create_Guy(int x, int y);
-Entity create_Torch(int x, int y);
+Entity create_Tree(int x, int y, int z);
+Entity create_Guy(int x, int y, int z);
+Entity create_Torch(int x, int y, int z);
 #endif
