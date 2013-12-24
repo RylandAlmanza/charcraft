@@ -47,19 +47,19 @@ void World_update_light_map(World *self) {
 
     int i;
     for (i = 0; i < self->number_of_lights; i++) {
-        Entity light = self->entities[self->light_ids[i]];
+        Entity *light = &self->entities[self->light_ids[i]];
         int x;
         int y;
-        for (y = light.y - light.brightness;
-             y < light.y + light.brightness + 1;
+        for (y = light->y - light->brightness;
+             y < light->y + light->brightness + 1;
              y++) {
              if (y < 0) continue;
              if (y >= self->height) break;
-             int y_distance = get_distance(0, y, 0, light.y);
-             int number_of_columns = (light.brightness * 2) -
+             int y_distance = get_distance(0, y, 0, light->y);
+             int number_of_columns = (light->brightness * 2) -
                                      (y_distance * 2) +
                                      1;
-             int start_x = light.x - ((number_of_columns - 1) / 2);
+             int start_x = light->x - ((number_of_columns - 1) / 2);
              for (x = start_x; x < start_x + number_of_columns; x++) {
                  if (x < 0) continue;
                  if (x >= self->width) break;
@@ -129,12 +129,16 @@ World construct_World(int width, int height) {
     world.map = malloc(sizeof(Entity) * (world.width * world.height));
     world.light_map = malloc(sizeof(bool) * (world.width * world.height));
     int y;
+    int x;
     for (y = 0; y < world.height; y++) {
         world.map[y] = malloc(sizeof(Entity) * world.width);
         world.light_map[y] = malloc(sizeof(bool) * world.width);
-        int x;
         for (x = 0; x < world.width; x++) {
-            world.map[y][x] = create_GrassBlock(x, y);
+            if (x >= 35 && x <= 45 && y >= 7 && y <= 17) {
+                world.map[y][x] = create_WaterBlock(x, y);
+            } else {
+                world.map[y][x] = create_GrassBlock(x, y);
+            }
             world.light_map[y][x] = false;
         }
     }

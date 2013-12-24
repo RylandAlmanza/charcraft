@@ -1,30 +1,29 @@
 #include <stdlib.h>
-#include <ncurses.h>
 #include "display.h"
 #include "colorutils.h"
 
-void LayerQueue_add_entity(LayerQueue *self, Entity entity) {
-    self->entities[self->length] = entity;
+void LayerQueue_add_cell(LayerQueue *self, Cell cell) {
+    self->cells[self->length] = cell;
     self->length = self->length + 1;
-    self->entities = realloc(self->entities, sizeof(Entity) * (self->length + 1));
+    self->cells = realloc(self->cells, sizeof(Cell) * (self->length + 1));
 }
 
 void LayerQueue_reset(LayerQueue *self) {
     self->length = 0;
-    self->entities = realloc(self->entities, sizeof(Entity));
+    self->cells = realloc(self->cells, sizeof(Cell));
 }
 
 LayerQueue construct_LayerQueue() {
     LayerQueue layer_queue;
     layer_queue.length = 0;
-    layer_queue.entities = malloc(sizeof(Entity));
-    layer_queue.add_entity = &LayerQueue_add_entity;
+    layer_queue.cells = malloc(sizeof(Cell));
+    layer_queue.add_cell = &LayerQueue_add_cell;
     layer_queue.reset = &LayerQueue_reset;
     return layer_queue;
 }
 
 void destroy_LayerQueue(LayerQueue *layer_queue) {
-    free(layer_queue->entities);
+    free(layer_queue->cells);
 }    
 
 void Display_reset_queue(Display *self) {
@@ -34,9 +33,8 @@ void Display_reset_queue(Display *self) {
     }
 }
 
-void Display_add_entity_to_queue(Display *self, Entity entity) {
-    self->layer_queues[entity.z].add_entity(&self->layer_queues[entity.z],
-                                            entity);
+void Display_add_cell_to_queue(Display *self, Cell cell) {
+    self->layer_queues[cell.z].add_cell(&self->layer_queues[cell.z], cell);
 }
 
 void Display_draw(Display *self) {
@@ -45,12 +43,13 @@ void Display_draw(Display *self) {
         LayerQueue layer_queue = self->layer_queues[layer_number];
         int i;
         for (i = 0; i < layer_queue.length; i++) {
-            int color_pair = get_color_pair(layer_queue.entities[i].foreground,
-                                            layer_queue.entities[i].background);
+            Cell *cell = &layer_queue.cells[i];
+            int color_pair = get_color_pair(cell->foreground,
+                                            cell->background);
             attron(COLOR_PAIR(color_pair));
-            mvaddch(layer_queue.entities[i].y,
-                    layer_queue.entities[i].x,
-                    layer_queue.entities[i].character);
+            mvaddch(cell->y,
+                    cell->x,
+                    cell->character);
             attroff(COLOR_PAIR(color_pair));
         }
     }
@@ -76,7 +75,7 @@ Display construct_Display() {
         display.layer_queues[i] = construct_LayerQueue();
     }
     display.reset_queue = &Display_reset_queue;
-    display.add_entity_to_queue = &Display_add_entity_to_queue;
+    display.add_cell_to_queue = &Display_add_cell_to_queue;
     display.draw = &Display_draw;
     return display;
 }

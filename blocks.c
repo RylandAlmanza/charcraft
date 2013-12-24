@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <ncurses.h>
+#include "colorutils.h"
 #include "blocks.h"
 
 Entity create_GrassBlock(int x, int y) {
@@ -8,9 +8,18 @@ Entity create_GrassBlock(int x, int y) {
                           .z = 0,
                           .character = '.',
                           .brightness = 0,
-                          .foreground = COLOR_GREEN,
-                          .background = COLOR_GREEN,
-                          .original_foreground = COLOR_GREEN,
-                          .original_background = COLOR_GREEN};
+                          .foreground = WHITE,
+                          .background = GREEN};
     return grass_block;
-} 
+}
+
+Entity create_WaterBlock(int x, int y) {
+    Entity water_block = {.x = x,
+                          .y = y,
+                          .z = 0,
+                          .character = '~',
+                          .brightness = 0,
+                          .foreground = WHITE,
+                          .background = BLUE};
+    return water_block;
+}
